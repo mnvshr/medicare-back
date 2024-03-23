@@ -1,10 +1,10 @@
-import User from "../models/UserSchema.js";
+import Doctor from "../models/DoctorSchema.js";
 
-export const updateUser = async (req, res) => {
+export const updateDoctor = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const updatedUser = await User.findByIdAndUpdate(
+    const updatedDoctor = await Doctor.findByIdAndUpdate(
       id,
       { $set: req.body },
       { new: true }
@@ -13,7 +13,7 @@ export const updateUser = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Successfully Updated",
-      data: updateUser,
+      data: updateDoctor,
     });
   } catch (err) {
     res.status(500).json({
@@ -23,11 +23,11 @@ export const updateUser = async (req, res) => {
   }
 };
 
-export const deleteUser = async (req, res) => {
+export const deleteDoctor = async (req, res) => {
   const id = req.params.id;
 
   try {
-    await User.findByIdAndDelete(id);
+    await Doctor.findByIdAndDelete(id);
 
     res.status(200).json({
       success: true,
@@ -41,16 +41,18 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-export const getSingleUser = async (req, res) => {
+export const getSingleDoctor = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const user = await User.findById(id).select("-password");
+    const doctor = await Doctor.findById(id)
+      .populate("reviews")
+      .select("-password");
 
     res.status(200).json({
       success: true,
       message: "User found",
-      data: user,
+      data: doctors,
     });
   } catch (err) {
     res.status(404).json({
@@ -60,14 +62,29 @@ export const getSingleUser = async (req, res) => {
   }
 };
 
-export const getAllUser = async (req, res) => {
+export const getAllDoctor = async (req, res) => {
   try {
-    const users = await User.find({}).select("-password");
+    const { query } = req.query;
+    let doctors;
+
+    if (query) {
+      doctors = await Doctor.find({
+        isApproved: "approved",
+        $or: [
+          { name: { $regex: query, $options: "i" } },
+          { specialization: { $regex: query, $options: "i" } },
+        ],
+      }).select("-password");
+    } else {
+      doctors = await Doctor.find({ isApproved: "approved" }).select(
+        "-password"
+      );
+    }
 
     res.status(200).json({
       success: true,
       message: "Users found",
-      data: users,
+      data: doctors,
     });
   } catch (err) {
     res.status(404).json({

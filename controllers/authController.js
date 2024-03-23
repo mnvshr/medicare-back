@@ -60,7 +60,7 @@ export const register = async (req, res) => {
     res
       .status(200)
       .json({ success: true, message: "User successfull created" });
-  } catch (error) {
+  } catch (err) {
     res
       .status(500)
       .json({ success: false, message: "Internal server error, Try Again" });
@@ -82,9 +82,13 @@ export const login = async (req, res) => {
       user = doctor;
     }
 
+    // if user not found
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // compare password
 
     const isPasswordMatch = await bcrypt.compare(
       req.body.password,
@@ -107,7 +111,7 @@ export const login = async (req, res) => {
       data: { ...rest },
       role,
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({ status: false, message: "Failed to Login" });
   }
 };
